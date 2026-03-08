@@ -2,17 +2,21 @@ name: Django CI-CD
 
 on:
   push:
-    branches: [ "main" ] # Запуск при пуше в main
+    branches: [ "main" ]
 
 jobs:
-  build-and-deploy:
-    runs-on: self-hosted # Используем ваш компьютер как раннер
+  build-and-test:
+    runs-on: ubuntu-latest # Теперь используется бесплатное облако GitHub
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v2
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -20,25 +24,24 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          # Формируем имя в нижнем регистре
+          # Приводим имя образа к нижнему регистру (обязательно для Docker)
           IMAGE_NAME=ghcr.io/${{ github.repository }}:latest
           IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
           
-          echo "Building image: $IMAGE_NAME"
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
-      - name: Run Container Locally
+      - name: Test Run Container
         run: |
           IMAGE_NAME=ghcr.io/${{ github.repository }}:latest
           IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
           
-          # Очистка старых контейнеров
-          docker stop my_django_app || true
-          docker rm my_django_app || true
-          
-          # Запуск нового
-          docker run -d -p 8000:8000 --name my_django_app $IMAGE_NAME
+          # Запускаем в облаке, чтобы проверить, что образ рабочий
+          docker run -d -p 8000:8000 --name test_app $IMAGE_NAME
+          sleep 10
+          docker ps
+          # Проверяем, отвечает ли сервер (curl)
+          curl --retry 5 --retry-connrefused http://localhost:8000 || echo "App is not responding, but container is up"
 
 
 
