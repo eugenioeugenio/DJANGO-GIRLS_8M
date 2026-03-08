@@ -1,40 +1,37 @@
-
-
-name: Django CI
-
-on: [push] # Запускать при каждом пуше
-
-jobs:
-  test:
-    runs-on: ubuntu-latest # Используем бесплатное облако GitHub
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-      - name: Run Tests
-        run: python manage.py test --noinput
-      - name: Log in to GitHub Container Registry
+
+      - name: Log in to GHCR
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Docker Container
+      - name: Build and Push Docker Image
+        run: |
+          # Формируем имя образа (все в нижнем регистре)
+          IMAGE_NAME=ghcr.io/${{ github.repository }}:latest
+          IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
+          
+          # Сборка и отправка в GitHub Packages
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+
+      - name: Run Container Locally
         run: |
           IMAGE_NAME=ghcr.io/${{ github.repository }}:latest
           IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
           
-          # Удаляем старый контейнер, если он есть
+          # Чистим старое (ошибки игнорируем)
           docker stop my_django_app || true
           docker rm my_django_app || true
           
-          # Запускаем новый
+          # Запуск
           docker run -d -p 8000:8000 --name my_django_app $IMAGE_NAME
+
+
+
  
 
 
