@@ -38,7 +38,7 @@ jobs:
           
           # Запускаем в облаке, чтобы проверить, что образ рабочий
           docker run -d -p 8000:8000 --name test_app $IMAGE_NAME
-          sleep 10
+          sleep 30
           docker ps
           # Проверяем, отвечает ли сервер (curl)
           curl --retry 5 --retry-connrefused http://localhost:8000 || echo "App is not responding, but container is up"
