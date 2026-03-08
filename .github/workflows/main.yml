@@ -19,9 +19,13 @@ jobs:
         run: python manage.py test --noinput
       - name: Run Docker Container
         run: |
-          docker run -d -p 8000:8000 --name my_django_app ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest
-          sleep 10
-          docker ps  # Проверить, что он поднялся
+          # Используем переменные GitHub вместо GitLab
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
+          # Переводим в нижний регистр (Docker не любит заглавные буквы в названиях)
+          IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
+          
+          docker run -d -p 8000:8000 --name my_django_app $IMAGE_NAME
+
 
 
 
