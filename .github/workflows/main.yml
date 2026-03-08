@@ -1,5 +1,15 @@
+name: Django CI-CD
+
+on:
+  push:
+    branches: [ "main" ] # Запуск при пуше в main
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted # Используем ваш компьютер как раннер
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Log in to GHCR
         uses: docker/login-action@v2
@@ -10,11 +20,11 @@
 
       - name: Build and Push Docker Image
         run: |
-          # Формируем имя образа (все в нижнем регистре)
+          # Формируем имя в нижнем регистре
           IMAGE_NAME=ghcr.io/${{ github.repository }}:latest
           IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
           
-          # Сборка и отправка в GitHub Packages
+          echo "Building image: $IMAGE_NAME"
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
@@ -23,12 +33,13 @@
           IMAGE_NAME=ghcr.io/${{ github.repository }}:latest
           IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
           
-          # Чистим старое (ошибки игнорируем)
+          # Очистка старых контейнеров
           docker stop my_django_app || true
           docker rm my_django_app || true
           
-          # Запуск
+          # Запуск нового
           docker run -d -p 8000:8000 --name my_django_app $IMAGE_NAME
+
 
 
 
