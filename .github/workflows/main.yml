@@ -17,6 +17,11 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run Tests
         run: python manage.py test --noinput
+      - name: Run Docker Container
+        run: |
+          docker run -d -p 8000:8000 --name my_django_app ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest
+          sleep 10
+          docker ps  # Проверить, что он поднялся
 
 
 
