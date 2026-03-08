@@ -1,38 +1,86 @@
-stages:
-  - test
-  - build
-  - release
-Django Tests:
-  stage: test
-  image: python:latest
-  script:
-    - pip install -r requirements.txt
-    - python manage.py test --noinput
-  tags:
-    - docker
 
-Docker Build:
-  stage: build
-  image: docker:stable
-  services:
-    - docker:dind
-  script:
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-    - docker build _t ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} .
-    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG}
-  tags:
-    - docker
 
-Release:
-  stage: release
-  image: docker:stable
-  services:
-    - docker:dind
-  script:
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-    - docker pull ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG}
-    - docker tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:latest
-    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:latest
-  when: manual
-  tags:
-    - docker
+name: Django CI
+
+on: [push] # Запускать при каждом пуше
+
+jobs:
+  test:
+    runs-on: ubuntu-latest # Используем бесплатное облако GitHub
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+      - name: Run Tests
+        run: python manage.py test --noinput
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# stages:
+#   - test
+#   - build
+#   - release
+# Django Tests:
+#   stage: test
+#   image: python:latest
+#   script:
+#     - pip install -r requirements.txt
+#     - python manage.py test --noinput
+#   tags:
+#     - docker
+
+# Docker Build:
+#   stage: build
+#   image: docker:stable
+#   services:
+#     - docker:dind
+#   script:
+#     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+#     - docker build _t ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} .
+#     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG}
+#   tags:
+#     - docker
+
+# Release:
+#   stage: release
+#   image: docker:stable
+#   services:
+#     - docker:dind
+#   script:
+#     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+#     - docker pull ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG}
+#     - docker tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:latest
+#     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}:latest
+#   when: manual
+#   tags:
+#     - docker
