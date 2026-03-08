@@ -17,14 +17,25 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run Tests
         run: python manage.py test --noinput
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run Docker Container
         run: |
-          # Используем переменные GitHub вместо GitLab
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
-          # Переводим в нижний регистр (Docker не любит заглавные буквы в названиях)
+          IMAGE_NAME=ghcr.io/${{ github.repository }}:latest
           IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
           
+          # Удаляем старый контейнер, если он есть
+          docker stop my_django_app || true
+          docker rm my_django_app || true
+          
+          # Запускаем новый
           docker run -d -p 8000:8000 --name my_django_app $IMAGE_NAME
+ 
 
 
 
