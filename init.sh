@@ -1,4 +1,9 @@
 #!/bin/sh
+mkdir -p /code/db
+
+# Даем полные права на папку (чтобы SQLite мог создать файл)
+chmod 777 /code/db
+
 
 # 1. Миграции
 python3 manage.py migrate --noinput
