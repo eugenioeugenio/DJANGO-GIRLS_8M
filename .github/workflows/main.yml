@@ -23,25 +23,27 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push Docker Image
+        shell: pwsh # Явно говорим использовать PowerShell
         run: |
-          # Приводим имя образа к нижнему регистру (обязательно для Docker)
-          IMAGE_NAME=ghcr.io/${{ github.repository }}:latest
-          IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
+          # В PowerShell переменные пишутся через $
+          $IMAGE_NAME = "ghcr.io/${{ github.repository }}:latest".ToLower()
           
+          echo "Building image: $IMAGE_NAME"
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
-      - name: Test Run Container
+      - name: Run Container Locally
+        shell: pwsh
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository }}:latest
-          IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
+          $IMAGE_NAME = "ghcr.io/${{ github.repository }}:latest".ToLower()
           
-          # Запускаем в облаке, чтобы проверить, что образ рабочий
-          docker run -d -p 8000:8000 --name test_app $IMAGE_NAME
-          sleep 30
-          docker ps
-          # Проверяем, отвечает ли сервер (curl)
-          curl --retry 5 --retry-connrefused http://localhost:8000 || echo "App is not responding, but container is up"
+          # Очистка старых контейнеров (в PS нужно проверять наличие)
+          docker stop my_django_app 2>$null
+          docker rm my_django_app 2>$null
+          
+          # Запуск
+          docker run -d -p 8000:8000 --name my_django_app $IMAGE_NAME
+
 
 
 
