@@ -1,12 +1,16 @@
 #!/bin/sh
 
-# User credentials
-user=admin
-email=admin@example.com
-password=pass
+# Останавливаем выполнение при любой ошибке
+set -e
 
-file=db/db.sqlite3
+# Применяем миграции
+python3 manage.py migrate --noinput
 
-python3 manage.py migrate
+# Создаем суперпользователя (только если его еще нет)
+echo "from django.contrib.auth.models import User; \
+if not User.objects.filter(username='admin').exists(): \
+    User.objects.create_superuser('admin', 'admin@example.com', 'pass')" \
+| python3 manage.py shell
 
-echo "from django.contrib.auth.models import User; User.objects.create_superuser('$user', '$email', '$password')" | python3 manage.py shell || true
+# Запускаем сам сервер (важно, чтобы контейнер не выключался)
+python3 manage.py runserver 0.0.0.0:8000
