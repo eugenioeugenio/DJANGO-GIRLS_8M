@@ -23,7 +23,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push Docker Image
-        shell: pwsh # Явно говорим использовать PowerShell
+        shell: powershell # Явно говорим использовать PowerShell
         run: |
           # В PowerShell переменные пишутся через $
           $IMAGE_NAME = "ghcr.io/${{ github.repository }}:latest".ToLower()
