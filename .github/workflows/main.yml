@@ -32,9 +32,18 @@ jobs:
         shell: powershell
         run: |
           $IMAGE_NAME = "ghcr.io/${{ github.repository }}:latest".ToLower()
-          docker stop my_django_app 2>$null
-          docker rm my_django_app 2>$null
+          
+          # Проверяем, запущен ли контейнер, и останавливаем только если он есть
+          $exists = docker ps -a -q --filter "name=my_django_app"
+          if ($exists) {
+              Write-Host "Stopping and removing existing container..."
+              docker stop my_django_app
+              docker rm my_django_app
+          }
+
+          Write-Host "Starting new container: $IMAGE_NAME"
           docker run -d -p 8000:8000 --name my_django_app $IMAGE_NAME
+
 
 
 
