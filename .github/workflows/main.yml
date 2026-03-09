@@ -33,16 +33,19 @@ jobs:
         run: |
           $IMAGE_NAME = "ghcr.io/${{ github.repository }}:latest".ToLower()
           
-          # Проверяем, запущен ли контейнер, и останавливаем только если он есть
-          $exists = docker ps -a -q --filter "name=my_django_app"
-          if ($exists) {
-              Write-Host "Stopping and removing existing container..."
-              docker stop my_django_app
-              docker rm my_django_app
-          }
-
-          Write-Host "Starting new container: $IMAGE_NAME"
+          # 1. Останавливаем и УДАЛЯЕМ старый контейнер
+          docker stop my_django_app 2>$null
+          docker rm my_django_app 2>$null
+          
+          # 2. УДАЛЯЕМ старый образ, чтобы Docker не брал его из кеша
+          docker rmi $IMAGE_NAME 2>$null
+          
+          # 3. Принудительно качаем свежий образ из GitHub Packages
+          docker pull $IMAGE_NAME
+          
+          # 4. Запускаем
           docker run -d -p 8000:8000 --name my_django_app $IMAGE_NAME
+
 
 
 
