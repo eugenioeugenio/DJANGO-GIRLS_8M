@@ -36,18 +36,20 @@ jobs:
         run: |
           $IMAGE_NAME = "ghcr.io/${{ github.repository }}:latest".ToLower()
           
-          # 1. Останавливаем и УДАЛЯЕМ старый контейнер
-          docker stop my_django_app 2>$null
-          docker rm my_django_app 2>$null
+          # Пытаемся остановить и удалить контейнер безопасно
+          try {
+              docker stop my_django_app -ErrorAction SilentlyContinue
+              docker rm my_django_app -ErrorAction SilentlyContinue
+          } catch {
+              Write-Host "Container my_django_app not found, skipping..."
+          }
           
-          # 2. УДАЛЯЕМ старый образ, чтобы Docker не брал его из кеша
-          docker rmi $IMAGE_NAME 2>$null
+          # Удаляем старый образ, чтобы точно взялся новый
+          docker rmi $IMAGE_NAME -ErrorAction SilentlyContinue
           
-          # 3. Принудительно качаем свежий образ из GitHub Packages
-          docker pull $IMAGE_NAME
-          
-          # 4. Запускаем
+          Write-Host "Starting new container: $IMAGE_NAME"
           docker run -d -p 8000:8000 --name my_django_app $IMAGE_NAME
+
 
 
 
