@@ -5,44 +5,34 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  build-and-deploy:
     runs-on: self-hosted
-    permissions:
-      contents: read
-      packages: write
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push Docker Image
-        shell: powershell # Явно говорим использовать PowerShell
-        run: |
-          # В PowerShell переменные пишутся через $
-          $IMAGE_NAME = "ghcr.io/${{ github.repository }}:latest".ToLower()
-          
-          echo "Building image: $IMAGE_NAME"
-          docker build -t $IMAGE_NAME .
-          docker push $IMAGE_NAME
-
-      - name: Run Container Locally
+      - name: Build and Push
         shell: powershell
         run: |
           $IMAGE_NAME = "ghcr.io/${{ github.repository }}:latest".ToLower()
-          
-          # Очистка старых контейнеров (в PS нужно проверять наличие)
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+
+      - name: Run Locally
+        shell: powershell
+        run: |
+          $IMAGE_NAME = "ghcr.io/${{ github.repository }}:latest".ToLower()
           docker stop my_django_app 2>$null
           docker rm my_django_app 2>$null
-          
-          # Запуск
           docker run -d -p 8000:8000 --name my_django_app $IMAGE_NAME
+
 
 
 
