@@ -33,7 +33,7 @@ jobs:
           docker push $IMAGE_NAME
 
       - name: Run Container Locally
-        shell: pwsh
+        shell: powershell
         run: |
           $IMAGE_NAME = "ghcr.io/${{ github.repository }}:latest".ToLower()
           
