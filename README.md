@@ -1,3 +1,15 @@
+В данном проекте
+
+1. Написан докерфайл для приложения django girls.
+
+2. Создан cicd-пайплайн для сборки докер-образа ( первоначально на GitLab , но из-за ограничений окончательно на GitHub)
+
+3. Реализованы функции сохранения образа в докер-реджистри.
+
+
+
+
+
 # Complete Django Girls Tutorial
 
 This repository contains the code that one would eventually have were they to go through the [Django Girls tutorial](https://tutorial.djangogirls.org/en/).
